@@ -1,0 +1,13 @@
+Steps:
+1. Create weatherapp.yaml
+
+2. Create weatherapp-ing.yaml
+
+3. Type command: kubectl apply -f weatherapp.yaml
+
+4. Type command: kubectl apply -f weatherapp-ing.yaml
+
+5. Test the service: kubectl port-forward -n weatherns service/weatherapp-svc 8080:80
+
+6. Test website: http://163.47.9.233/
+   Verify that the weather info for Singapore

@@ -1,0 +1,88 @@
+---
+kind: Namespace
+apiVersion: v1
+
+metadata: 
+  name: weatherns
+  labels:
+    app: weatherapp
+
+---
+kind: Secret
+apiVersion: v1
+
+metadata: 
+  name: weatherapp-secret
+  namespace: weatherns
+
+data: 
+  #app_id: ZDUzNGYzZWNiOTVmMWRjM2JiMzkxYTJjZGJkMmQxYTI=
+  app_id: NzExYjhiOGYzN2Q0YzNkM2JhNzQ0YjYwOWQ4ZjA5MmY=
+
+---
+kind: Deployment
+apiVersion: apps/v1
+
+metadata: 
+  name: weatherapp-deploy
+  namespace: weatherns
+  labels: 
+    app: weatherapp-deploy
+  
+spec: 
+  replicas: 2
+  selector: 
+    matchLabels: 
+      app: weatherapp-pod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template: 
+    metadata: 
+      name: weatherapp-pod
+      namespace: weatherns
+      labels: 
+        app: weatherapp-pod
+        version: v1
+    spec: 
+      containers:
+        - name: weatherapp
+          image: stackupiss/weather:v1
+          imagePullPolicy: Always
+          env: 
+          - name: APP_ID
+            valueFrom: 
+              secretKeyRef:
+                name: weatherapp-secret
+                key: app_id
+          ports: 
+          - name: weatherapp-port
+            containerPort: 3000
+          resources: 
+            requests:
+              cpu: 100m
+              memory: 16M
+            limits:
+              cpu: 150m
+              memory: 32M
+
+---
+kind: Service
+apiVersion: v1
+
+metadata: 
+  name: weatherapp-svc
+  namespace: weatherns
+  labels:
+    app: weatherapp-svc
+
+spec:
+  type: ClusterIP
+  selector: 
+    app: weatherapp-pod
+  ports:
+    - name: weatherapp-svc-port
+      port: 3000
+      targetPort: weatherapp-port
